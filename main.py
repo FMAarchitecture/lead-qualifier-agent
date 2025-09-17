@@ -13,22 +13,15 @@ async def add_ngrok_header(request: Request, call_next):
     response.headers["ngrok-skip-browser-warning"] = "true"
     return response
 
+# Modelo para o desafio do Monday.com
+class ChallengeRequest(BaseModel):
+    challenge: str
+
 # Responde ao desafio do Monday.com com logs detalhados
-@app.post("/")
-async def root(request: Request):
-    raw_body = await request.body()
-    print("[MONDAY] RAW body:\n", raw_body.decode())
-
-    try:
-        json_body = await request.json()
-        challenge = json_body.get("challenge")
-        if challenge:
-            print(f"[MONDAY] Desafio recebido: {challenge}")
-            return PlainTextResponse(content=challenge, status_code=200)
-    except Exception as e:
-        print(f"[MONDAY] Erro ao decodificar JSON: {e}")
-
-    return {"status": "ok"}
+@app.post("/", response_class=PlainTextResponse)
+async def root(payload: ChallengeRequest):
+    print(f"[MONDAY] Desafio recebido: {payload.challenge}")
+    return payload.challenge
 
 # Processa novos leads vindos do Monday.com
 @app.post("/webhook")
@@ -73,7 +66,7 @@ async def handle_webhook(request: Request):
         "resumo": summary.strip()
     }
 
-# 🚀 Inicia o servidor no Railway
+# Inicia o servidor no Railway
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8080)
