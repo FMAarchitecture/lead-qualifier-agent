@@ -1,43 +1,60 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
+from typing import List, Optional
 from agents import researcher_agent, lead_analyst_agent, lead_scoring_specialist_agent, summarizer_agent
 from email_sender import send_email
 
 app = FastAPI()
 
-# Middleware para remover aviso de segurança do ngrok
+
+# MODELOS ----------------------------------------------------------------------
+
+class ColumnValue(BaseModel):
+    title: str
+    text: Optional[str] = None
+
+class WebhookEvent(BaseModel):
+    pulseName: str
+    columnValues: List[ColumnValue]
+
+class WebhookPayload(BaseModel):
+    event: WebhookEvent
+
+class ChallengeRequest(BaseModel):
+    challenge: str
+
+
+# MIDDLEWARE --------------------------------------------------------------------
+
 @app.middleware("http")
 async def add_ngrok_header(request: Request, call_next):
     response = await call_next(request)
     response.headers["ngrok-skip-browser-warning"] = "true"
     return response
 
-# Modelo para o desafio do Monday.com
-class ChallengeRequest(BaseModel):
-    challenge: str
 
-# Responde ao desafio do Monday.com com logs detalhados
-@app.post("/", response_class=PlainTextResponse)
+# ENDPOINTS --------------------------------------------------------------------
+
+@app.post("/")
 async def root(payload: ChallengeRequest):
     print(f"[MONDAY] Desafio recebido: {payload.challenge}")
-    return payload.challenge
+    return PlainTextResponse(content=payload.challenge, status_code=200)
 
-# Processa novos leads vindos do Monday.com
+
 @app.post("/webhook")
-async def handle_webhook(request: Request):
-    body = await request.json()
-    print("JSON recebido do Monday:\n", body)
+async def handle_webhook(payload: WebhookPayload):
+    print("JSON recebido do Monday:\n", payload)
 
-    event = body.get("event", {})
-    lead_name = event.get("pulseName", "Nome não encontrado")
-    column_values = event.get("columnValues", [])
+    event = payload.event
+    lead_name = event.pulseName
+    column_values = event.columnValues
 
     # Busca o tipo de projeto entre as colunas
     project_type = "não informado"
     for col in column_values:
-        if col.get("title", "").lower() in ["segmento", "tipo de projeto"]:
-            project_type = col.get("text", "") or "não informado"
+        if col.title.lower() in ["segmento", "tipo de projeto"]:
+            project_type = col.text or "não informado"
 
     # Monta os dados para os agentes
     lead_data = {
@@ -66,7 +83,9 @@ async def handle_webhook(request: Request):
         "resumo": summary.strip()
     }
 
-# Inicia o servidor no Railway
+
+# ENTRYPOINT -------------------------------------------------------------------
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8080)
