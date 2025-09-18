@@ -6,6 +6,7 @@ OLLAMA_URL = os.getenv("OLLAMA_URL")
 MODEL_NAME = "llama3"
 
 def call_llm(prompt: str) -> str:
+    print(f">> Chamando LLM via: {OLLAMA_URL}")  # DEBUG
     response = requests.post(OLLAMA_URL, json={
         "model": MODEL_NAME,
         "prompt": prompt,
