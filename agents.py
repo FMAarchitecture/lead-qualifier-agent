@@ -1,4 +1,5 @@
 import requests
+import os
 from web_search import search_web
 
 OLLAMA_URL = os.getenv("OLLAMA_URL")
