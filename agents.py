@@ -1,7 +1,7 @@
 import requests
 from web_search import search_web
 
-OLLAMA_URL = "http://localhost:11434/api/generate"
+OLLAMA_URL = os.getenv("OLLAMA_URL")
 MODEL_NAME = "llama3"
 
 def call_llm(prompt: str) -> str:
