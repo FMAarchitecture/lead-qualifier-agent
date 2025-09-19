@@ -84,21 +84,26 @@ async def handle_webhook(payload: WebhookPayload, background_tasks: BackgroundTa
 # PROCESSAMENTO EM BACKGROUND --------------------------------------------------
 
 def process_lead_flow(lead_data: dict):
-    print("▶️ [AGENTES] Processando lead:", lead_data)
+    try:
+        print("▶️ [AGENTES] Processando lead:", lead_data)
 
-    research = researcher_agent(lead_data)
-    analysis = lead_analyst_agent(lead_data, research)
-    score = lead_scoring_specialist_agent(lead_data, research, analysis)
-    summary = summarizer_agent(lead_data, research, analysis, score)
+        research = researcher_agent(lead_data)
+        analysis = lead_analyst_agent(lead_data, research)
+        score = lead_scoring_specialist_agent(lead_data, research, analysis)
+        summary = summarizer_agent(lead_data, research, analysis, score)
 
-    # Envia e-mail
-    send_email(
-        subject=f"Lead qualificado: {lead_data['nome']}",
-        body=summary.strip(),
-        to_email="laura.bueno@fernandamarques.com.br"
-    )
+        print("📩 RESUMO FINAL:", summary)  # DEBUG extra
 
-    print("✅ [FINALIZADO] Resumo enviado com sucesso.")
+        send_email(
+            subject=f"Lead qualificado: {lead_data['nome']}",
+            body=summary.strip(),
+            to_email="laura.bueno@fernandamarques.com.br"
+        )
+
+        print("✅ [EMAIL] Enviado com sucesso!")
+
+    except Exception as e:
+        print("❌ [ERRO NO PROCESSO COMPLETO]:", str(e))
 
 
 # ENTRYPOINT -------------------------------------------------------------------
