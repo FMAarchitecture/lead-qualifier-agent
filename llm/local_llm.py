@@ -1,7 +1,9 @@
 import requests
+import os
 
 def query_local_llm(prompt, model="llama3:8b", temperature=0.7, max_tokens=512):
-    url = "http://localhost:11434/api/chat"
+    base_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
+    url = f"{base_url}/api/chat"
 
     payload = {
         "model": model,

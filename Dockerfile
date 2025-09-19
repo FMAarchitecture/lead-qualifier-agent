@@ -1,10 +1,7 @@
 FROM ollama/ollama
 
-# Baixa o modelo desejado ao buildar
-RUN ollama pull llama3
-
-# Expõe a porta padrão da API
+# Expondo a porta padrão da API
 EXPOSE 11434
 
-# Inicia o serviço
+# Inicia o serviço Ollama (o modelo pode ser puxado via API depois)
 CMD ["ollama", "serve"]
