@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, BackgroundTasks
+from fastapi import FastAPI, Request
 from fastapi.responses import PlainTextResponse
 from fastapi.exceptions import HTTPException
 from pydantic import BaseModel
@@ -9,7 +9,6 @@ from agents import (
     lead_scoring_specialist_agent,
     summarizer_agent
 )
-from email_sender import send_email
 
 app = FastAPI()
 
@@ -49,7 +48,7 @@ async def root(payload: ChallengeRequest):
 
 
 @app.post("/webhook")
-async def handle_webhook(payload: WebhookPayload, background_tasks: BackgroundTasks):
+async def handle_webhook(payload: WebhookPayload):
     print("✅ JSON recebido do Monday:\n", payload)
 
     try:
@@ -70,21 +69,6 @@ async def handle_webhook(payload: WebhookPayload, background_tasks: BackgroundTa
             "tipo_projeto": project_type
         }
 
-        # Roda os agentes em background
-        background_tasks.add_task(process_lead_flow, lead_data)
-
-        # Responde rapidamente ao Make
-        return {"status": "received"}
-
-    except Exception as e:
-        print("[❌ ERRO] Falha ao processar webhook:", e)
-        raise HTTPException(status_code=422, detail=str(e))
-
-
-# PROCESSAMENTO EM BACKGROUND --------------------------------------------------
-
-def process_lead_flow(lead_data: dict):
-    try:
         print("▶️ [AGENTES] Processando lead:", lead_data)
 
         research = researcher_agent(lead_data)
@@ -92,18 +76,22 @@ def process_lead_flow(lead_data: dict):
         score = lead_scoring_specialist_agent(lead_data, research, analysis)
         summary = summarizer_agent(lead_data, research, analysis, score)
 
-        print("📩 RESUMO FINAL:", summary)  # DEBUG extra
+        print("📩 RESUMO FINAL:", summary)
 
-        send_email(
-            subject=f"Lead qualificado: {lead_data['nome']}",
-            body=summary.strip(),
-            to_email="laura.bueno@fernandamarques.com.br"
-        )
-
-        print("✅ [EMAIL] Enviado com sucesso!")
+        # Retorna os dados para o Make
+        return {
+            "nome": lead_name,
+            "segmento": project_type,
+            "tipo_projeto": project_type,
+            "pesquisa": research,
+            "analise": analysis,
+            "score": score,
+            "resumo": summary.strip()
+        }
 
     except Exception as e:
-        print("❌ [ERRO NO PROCESSO COMPLETO]:", str(e))
+        print("❌ [ERRO NO PROCESSO]:", str(e))
+        raise HTTPException(status_code=422, detail=str(e))
 
 
 # ENTRYPOINT -------------------------------------------------------------------
