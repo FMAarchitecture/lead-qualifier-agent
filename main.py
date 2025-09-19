@@ -1,8 +1,14 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, BackgroundTasks
 from fastapi.responses import PlainTextResponse
+from fastapi.exceptions import HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
-from agents import researcher_agent, lead_analyst_agent, lead_scoring_specialist_agent, summarizer_agent
+from agents import (
+    researcher_agent,
+    lead_analyst_agent,
+    lead_scoring_specialist_agent,
+    summarizer_agent
+)
 from email_sender import send_email
 
 app = FastAPI()
@@ -25,7 +31,7 @@ class ChallengeRequest(BaseModel):
     challenge: str
 
 
-# MIDDLEWARE --------------------------------------------------------------------
+# MIDDLEWARE -------------------------------------------------------------------
 
 @app.middleware("http")
 async def add_ngrok_header(request: Request, call_next):
@@ -43,27 +49,43 @@ async def root(payload: ChallengeRequest):
 
 
 @app.post("/webhook")
-async def handle_webhook(payload: WebhookPayload):
-    print("JSON recebido do Monday:\n", payload)
+async def handle_webhook(payload: WebhookPayload, background_tasks: BackgroundTasks):
+    print("✅ JSON recebido do Monday:\n", payload)
 
-    event = payload.event
-    lead_name = event.pulseName
-    column_values = event.columnValues
+    try:
+        event = payload.event
+        lead_name = event.pulseName
+        column_values = event.columnValues
 
-    # Busca o tipo de projeto entre as colunas
-    project_type = "não informado"
-    for col in column_values:
-        if col.title.lower() in ["segmento", "tipo de projeto"]:
-            project_type = col.text or "não informado"
+        # Busca o tipo de projeto entre as colunas
+        project_type = "não informado"
+        for col in column_values:
+            if col.title.lower() in ["segmento", "tipo de projeto"]:
+                project_type = col.text or "não informado"
 
-    # Monta os dados para os agentes
-    lead_data = {
-        "nome": lead_name,
-        "segmento": project_type,
-        "tipo_projeto": project_type
-    }
+        # Monta os dados para os agentes
+        lead_data = {
+            "nome": lead_name,
+            "segmento": project_type,
+            "tipo_projeto": project_type
+        }
 
-    # Executa os agentes
+        # Roda os agentes em background
+        background_tasks.add_task(process_lead_flow, lead_data)
+
+        # Responde rapidamente ao Make
+        return {"status": "received"}
+
+    except Exception as e:
+        print("[❌ ERRO] Falha ao processar webhook:", e)
+        raise HTTPException(status_code=422, detail=str(e))
+
+
+# PROCESSAMENTO EM BACKGROUND --------------------------------------------------
+
+def process_lead_flow(lead_data: dict):
+    print("▶️ [AGENTES] Processando lead:", lead_data)
+
     research = researcher_agent(lead_data)
     analysis = lead_analyst_agent(lead_data, research)
     score = lead_scoring_specialist_agent(lead_data, research, analysis)
@@ -76,12 +98,7 @@ async def handle_webhook(payload: WebhookPayload):
         to_email="laura.bueno@fernandamarques.com.br"
     )
 
-    return {
-        "pesquisa": research,
-        "analise": analysis,
-        "score": score,
-        "resumo": summary.strip()
-    }
+    print("✅ [FINALIZADO] Resumo enviado com sucesso.")
 
 
 # ENTRYPOINT -------------------------------------------------------------------
