@@ -6,9 +6,25 @@ OLLAMA_URL = os.getenv("OLLAMA_URL")
 MODEL_NAME = "llama3"
 
 def call_llm(prompt: str) -> str:
-    print("🔁 [DEBUG] LLM mockada foi chamada com o prompt:")
-    print(prompt)
-    return f"[RESPOSTA FICTÍCIA]\n{prompt[:200]}..."
+    try:
+        print("🔁 [DEBUG] Chamando modelo LLM com prompt:")
+        print(prompt)
+
+        response = requests.post(
+            f"{OLLAMA_URL}/api/generate",
+            json={"model": MODEL_NAME, "prompt": prompt},
+            timeout=120
+        )
+
+        if response.status_code != 200:
+            raise ValueError(f"Erro na chamada do modelo: {response.text}")
+
+        result = response.json()
+        return result.get("response", "[ERRO] Resposta vazia do modelo.")
+
+    except Exception as e:
+        print(f"❌ Erro ao chamar LLM: {e}")
+        return f"[ERRO] {str(e)}"
 
 
 def researcher_agent(data: dict) -> str:
