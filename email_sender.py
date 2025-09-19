@@ -17,7 +17,6 @@ def send_email(subject: str, body: str, to_email: str):
 
     # HTML com estilo leve e quebra de parágrafos
     html_body = body.replace("Here is the summary:", "").strip().replace("\n\n", "</p><p>").replace("\n", "<br>")
-
     msg.add_alternative(f"""
     <html>
     <body style="font-family: Arial, sans-serif; font-size: 14px;">
@@ -27,6 +26,10 @@ def send_email(subject: str, body: str, to_email: str):
     </html>
     """, subtype='html')
 
+    # DEBUG ↓↓↓
+    print(f"📧 Enviando email para: {to_email}")
+    print("✉️ Assunto:", subject)
+    print("✉️ Corpo (texto):", body)
 
     try:
         with smtplib.SMTP(smtp_server, smtp_port) as server:
