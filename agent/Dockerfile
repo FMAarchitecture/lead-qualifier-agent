@@ -2,12 +2,12 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Copia os requisitos
-COPY requirements.txt .
+# Copia os requisitos da raiz
+COPY ../requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copia o código
-COPY . .
+# Copia todo o código do repositório (inclusive main.py da raiz)
+COPY .. .
 
 # Expõe a porta do FastAPI
 EXPOSE 8000
