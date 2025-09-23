@@ -1,29 +1,23 @@
-import requests
 import os
+import google.generativeai as genai
 from web_search import search_web
 
-OLLAMA_URL = os.getenv("OLLAMA_URL")
-MODEL_NAME = "llama3"
+# Configura a chave do Gemini
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+MODEL_NAME = "gemini-pro"
 
 def call_llm(prompt: str) -> str:
     try:
-        print("🔁 [DEBUG] Chamando modelo LLM com prompt:")
+        print("🔁 [DEBUG] Chamando modelo Gemini com prompt:")
         print(prompt)
 
-        response = requests.post(
-            f"{OLLAMA_URL}/api/generate",
-            json={"model": MODEL_NAME, "prompt": prompt},
-            timeout=120
-        )
+        model = genai.GenerativeModel(MODEL_NAME)
+        response = model.generate_content(prompt)
 
-        if response.status_code != 200:
-            raise ValueError(f"Erro na chamada do modelo: {response.text}")
-
-        result = response.json()
-        return result.get("response", "[ERRO] Resposta vazia do modelo.")
+        return response.text.strip() if response and response.text else "[ERRO] Resposta vazia do Gemini."
 
     except Exception as e:
-        print(f"❌ Erro ao chamar LLM: {e}")
+        print(f"❌ Erro ao chamar Gemini: {e}")
         return f"[ERRO] {str(e)}"
 
 
@@ -127,6 +121,6 @@ def summarizer_agent(data: dict, pesquisa: str, analise: str, score: str) -> str
     - A sugestão de próximo passo para abordagem
 
     Escreva em português, em tom profissional, e comece com:
-    "O lead [nome], foi avaliado..."
+    "O lead {data.get('nome')}, foi avaliado..."
     """
     return call_llm(prompt)
