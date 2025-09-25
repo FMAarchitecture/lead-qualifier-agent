@@ -131,13 +131,16 @@ def summarizer_agent(data: dict, pesquisa: str, analise: str, score: str) -> str
     --- SCORE ---
     {score}
 
-    Escreva um resumo de até 10 linhas, cobrindo:
-    - A nota final atribuída.
-    - Fatores que justificam a nota.
-    - Perfil do lead (PF ou PJ) e relevância para o escritório.
-    - Sugestão clara de próximo passo (abordar, aguardar, arquivar, etc.).
+    Escreva um resumo em formato de email, com no máximo 10 linhas, estruturado em parágrafos separados por quebras de linha duplas.
+    
+    Estrutura obrigatória:
+    1. Parágrafo inicial apresentando o lead e a nota atribuída.
+    2. Parágrafo explicando os principais fatores que justificam a nota.
+    3. Parágrafo descrevendo o perfil do lead (PF ou PJ) e sua relevância para o escritório.
+    4. Parágrafo final com recomendação clara de próximo passo.
 
-    Escreva em português, em tom profissional, e comece com:
+    Escreva em português, em tom profissional.
+    Comece com:
     "O lead {data.get('nome')}, foi avaliado..."
     """
     return call_llm(prompt)
