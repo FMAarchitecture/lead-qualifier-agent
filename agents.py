@@ -131,8 +131,10 @@ def summarizer_agent(data: dict, pesquisa: str, analise: str, score: str) -> str
     --- SCORE ---
     {score}
 
-    Formate a resposta em **HTML estruturado** com os seguintes blocos:
+    Escreva a resposta em HTML estruturado, **mas NÃO utilize blocos de código nem ```html```**.
+    Apenas retorne o HTML limpo, pronto para ser usado em um email.
 
+    Estrutura esperada:
     <h2>Resumo de Qualificação</h2>
     <p><strong>O lead [NOME]</strong> foi avaliado com nota <strong>[NOTA]</strong>.</p>
 
@@ -141,8 +143,5 @@ def summarizer_agent(data: dict, pesquisa: str, analise: str, score: str) -> str
 
     <h3>Perfil e Relevância</h3>
     <p>[Se é PF ou PJ e a importância para a Fernanda Marques Arquitetura]</p>
-
-
-    Use apenas tags HTML simples (<h2>, <h3>, <p>, <strong>, <br>). 
     """
     return call_llm(prompt)
