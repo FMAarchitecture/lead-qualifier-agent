@@ -131,16 +131,18 @@ def summarizer_agent(data: dict, pesquisa: str, analise: str, score: str) -> str
     --- SCORE ---
     {score}
 
-    Escreva um resumo em formato de email, com no máximo 10 linhas, estruturado em parágrafos separados por quebras de linha duplas.
-    
-    Estrutura obrigatória:
-    1. Parágrafo inicial apresentando o lead e a nota atribuída.
-    2. Parágrafo explicando os principais fatores que justificam a nota.
-    3. Parágrafo descrevendo o perfil do lead (PF ou PJ) e sua relevância para o escritório.
-    4. Parágrafo final com recomendação clara de próximo passo.
+    Formate a resposta em **HTML estruturado** com os seguintes blocos:
 
-    Escreva em português, em tom profissional.
-    Comece com:
-    "O lead {data.get('nome')}, foi avaliado..."
+    <h2>Resumo de Qualificação</h2>
+    <p><strong>O lead [NOME]</strong> foi avaliado com nota <strong>[NOTA]</strong>.</p>
+
+    <h3>Fatores que justificam a nota</h3>
+    <p>[Texto explicativo]</p>
+
+    <h3>Perfil e Relevância</h3>
+    <p>[Se é PF ou PJ e a importância para a Fernanda Marques Arquitetura]</p>
+
+
+    Use apenas tags HTML simples (<h2>, <h3>, <p>, <strong>, <br>). 
     """
     return call_llm(prompt)
