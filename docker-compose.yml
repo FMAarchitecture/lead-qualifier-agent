@@ -1,8 +1,8 @@
-version: "3.8"
-
 services:
   lead-qualifier-agent:
-    build: .
+    build:
+      context: .
+      dockerfile: agent/Dockerfile
     image: lead-qualifier-agent:latest   # referência obrigatória para Swarm
     ports:
       - "8080:8080"
