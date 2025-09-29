@@ -4,7 +4,7 @@ from web_search import search_web
 
 # Configura a chave do Gemini
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-MODEL_NAME = "models/gemini-1.5-flash"
+MODEL_NAME = "gemini-1.5-flash"
 
 def call_llm(prompt: str) -> str:
     try:
