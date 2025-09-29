@@ -1,9 +1,6 @@
 services:
   lead-qualifier-agent:
-    build:
-      context: .
-      dockerfile: agent/Dockerfile
-    image: lead-qualifier-agent:latest   # referência obrigatória para Swarm
+    image: tifma/lead-qualifier-agent:latest
     ports:
       - "8080:8000"
     environment:
