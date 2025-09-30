@@ -2,7 +2,7 @@ import os
 import google.generativeai as genai
 from web_search import search_web
 
-# Configura a chave do Gemini
+# Configura a chave do Gemini e definir modelo
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 MODEL_NAME = "models/gemini-2.5-flash"
 
