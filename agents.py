@@ -39,6 +39,7 @@ def researcher_agent(data: dict) -> str:
     - Projetos residenciais únicos para clientes de alta renda (pessoa física).
     - Projetos de incorporação imobiliária de alto padrão (pessoa jurídica).
 
+
     Nome do lead: {nome}
     Tipo de projeto: {tipo}
 
